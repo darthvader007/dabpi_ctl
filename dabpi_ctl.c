@@ -36,6 +36,45 @@ uint32_t frequency_list_by[] = {	CHAN_5C,
 					CHAN_11C,
 					CHAN_12A,
 					CHAN_6A};
+uint32_t frequency_list_fu[] = {	
+					CHAN_5A,
+					CHAN_5B,
+					CHAN_5C,
+					CHAN_5D,
+					CHAN_6A,
+					CHAN_6B,
+					CHAN_6C,
+					CHAN_6D,
+					CHAN_7A,
+					CHAN_7B,
+					CHAN_7C,
+					CHAN_7D,
+					CHAN_8A,
+					CHAN_8B,
+					CHAN_8C,
+					CHAN_8D,
+					CHAN_9A,
+					CHAN_9B,
+					CHAN_9C,
+					CHAN_9D,
+					CHAN_10A,
+					CHAN_10B,
+					CHAN_10C,
+					CHAN_10D,
+					CHAN_11A,
+					CHAN_11B,
+					CHAN_11C,
+					CHAN_11D,
+					CHAN_12A,
+					CHAN_12B,
+					CHAN_12C,
+					CHAN_12D,
+					CHAN_13A,
+					CHAN_13B,
+					CHAN_13C,
+					CHAN_13D,
+					CHAN_13E,
+					CHAN_13F};
 uint32_t frequency_list_bw[] = {	CHAN_5C,
 					CHAN_8D,
 					CHAN_9D,
@@ -44,8 +83,7 @@ uint32_t frequency_list_bb[] = {	CHAN_5C,
 					CHAN_7B,
 					CHAN_7D};
 uint32_t frequency_list_hb[] = {	CHAN_5C,
-					CHAN_7B,
-					CHAN_12A};
+					CHAN_7B};
 uint32_t frequency_list_hh[] = {	CHAN_5C,
 					CHAN_7A};
 uint32_t frequency_list_he[] = {	CHAN_5C,
@@ -65,7 +103,7 @@ uint32_t frequency_list_sl[] = {	CHAN_5C,
 uint32_t frequency_list_sn[] = {	CHAN_5C,
 					CHAN_6C,
 					CHAN_8D,
-					CHAN_9A,
+					CHAN_9C,
 					CHAN_12A};
 uint32_t frequency_list_st[] = {	CHAN_5C,
 					CHAN_11C,
@@ -82,13 +120,6 @@ uint32_t frequency_list_it_sue[] = {	CHAN_10B,
 					CHAN_12A,
 					CHAN_12B,
 					CHAN_12C};
-uint32_t frequency_list_ch[] = {	CHAN_12A,
-					CHAN_12C,
-					CHAN_12D,
-					CHAN_7D,
-					CHAN_7A,
-					CHAN_9D,
-					CHAN_8B};
 
 void init_fm(void)
 {
@@ -166,13 +197,13 @@ void show_help(char *prog_name)
 	printf("                    13  Schleswig-Holstein\r\n");
 	printf("                    14  Thueringen\r\n");
 	printf("                    15  Suedtirol (Italien)\r\n");
-	printf("                    16  Schweiz\r\n");
+	printf("                    16  Full Scan \r\n");
 	printf("  -k region      scan frequency list\r\n");
 	printf("  -l up|down     fm seek next station\r\n");
 	printf("  -m             fm rds status\r\n");
 	printf("  -n             dab get audio info\r\n");
 	printf("  -o             dab get subchannel info\r\n");
-	printf("  -s             get sys state (fm,dab,am...)\r\n");
+	printf("  -p             dab get service info\r\n");
 	printf("  -h             this help\n");
 }
 
@@ -227,8 +258,8 @@ void load_regional_channel_list(uint8_t tmp)
 		si46xx_dab_set_freq_list(ARRAY_SIZE(frequency_list_it_sue),
 					frequency_list_it_sue);
 	}else if(tmp == 16){
-		si46xx_dab_set_freq_list(ARRAY_SIZE(frequency_list_ch),
-					frequency_list_ch);
+		si46xx_dab_set_freq_list(ARRAY_SIZE(frequency_list_fu),
+					frequency_list_fu);
 	}else{
 		printf("Region %d not implemented\r\n",tmp);
 	}
@@ -245,7 +276,7 @@ int main(int argc, char **argv)
 	printf("dabpi_ctl version %s\r\n",GIT_VERSION);
 
 	si46xx_init();
-	while((c=getopt(argc, argv, "abc:def:ghi:j:k:l:mnos")) != -1){
+	while((c=getopt(argc, argv, "abc:def:ghi:j:k:l:mno:p")) != -1){
 		switch(c){
 		case 'a':
 			init_dab();
@@ -305,8 +336,8 @@ int main(int argc, char **argv)
 		case 'o':
 			si46xx_dab_get_subchannel_info();
 			break;
-		case 's':
-			si46xx_get_sys_state();
+		case 'p':
+			si46xx_dab_get_service_info();
 			break;
 		default:
 			show_help(argv[0]);

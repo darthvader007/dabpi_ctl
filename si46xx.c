@@ -138,29 +138,15 @@ static uint16_t si46xx_read_dynamic(uint8_t *data)
 	return cnt + 6;
 }
 
-void si46xx_get_sys_state()
+static void si46xx_get_sys_state()
 {
 	uint8_t zero = 0;
 	char buf[6];
-	uint8_t mode;
 
 	si46xx_write_data(SI46XX_GET_SYS_STATE,&zero,1);
 	si46xx_read(buf,6);
-	mode = buf[4];
 	printf("si46xx_get_sys_state answer: ");
 	print_hex_str(buf,6);
-	printf("Current mode: \n");
-	switch(mode)
-	{
-		case 0: printf("Bootloader is active\n"); break;
-		case 1: printf("FMHD is active\n"); break;
-		case 2: printf("DAB is active\n"); break;
-		case 3: printf("TDMB or data only DAB image is active\n"); break;
-		case 4: printf("FMHD is active\n"); break;
-		case 5: printf("AMHD is active\n"); break;
-		case 6: printf("AMHD Demod is active\n"); break;
-		default: break;
-	}
 }
 
 static void si46xx_get_part_info()
@@ -284,6 +270,8 @@ void si46xx_dab_get_ensemble_info()
 	char data;
 	uint8_t timeout;
 	char label[17];
+	char eid[4];
+
 
 	//data[0] = (1<<4) | (1<<0); // force_wb, low side injection
 	data = 0;
@@ -296,8 +284,13 @@ void si46xx_dab_get_ensemble_info()
 			break;
 	}
 	memcpy(label,&buf[6],16);
+	//memcpy(eid,&buf[0],3);
 	label[16] = '\0';
+
+	//eid[4] = '\0';
 	printf("Name: %s",label);
+	printf("Ensemble ID: %d\n", buf[4] + (buf[5]<<8));
+
 }
 
 void si46xx_dab_print_service_list()
@@ -454,6 +447,85 @@ void si46xx_dab_get_subchannel_info()
 	printf("Capacity Units: %d CU\r\n",buf[8] + (buf[9]<<8));
 	printf("CU Starting Adress: %d\r\n",buf[10] + (buf[11]<<8));
 }
+
+void si46xx_dab_get_service_info()
+{
+	uint8_t zero = 0;
+	char buf[12];
+	printf("si46xx_dab_get_service_info()\r\n");
+	si46xx_write_data(SI46XX_DAB_GET_SUBCHAN_INFO,&zero,1);
+	si46xx_read(buf,12);
+	if(buf[4] == 0) {
+		printf("Service Mode = Audio Stream Service\r\n");
+	}
+	if(buf[4] == 1) {
+		printf("Service Mode = Data Stream Service\r\n");
+	}
+	if(buf[4] == 2) {
+		printf("Service Mode = FIDC Service\r\n");
+	}
+	if(buf[4] == 3) {
+		printf("Service Mode = MSC Data Packet Service\r\n");
+	}
+	if(buf[4] == 4) {
+		printf("Service Mode = DAB+\r\n");
+	}
+	if(buf[4] == 5) {
+		printf("Service Mode = DAB\r\n");
+	}
+	if(buf[4] == 6) {
+		printf("Service Mode = FIC Service\r\n");
+	}
+	if(buf[4] == 7) {
+		printf("Service Mode = XPAD Data\r\n");
+	}
+	if(buf[4] == 8) {
+		printf("Service Mode = No Media\r\n");
+	}
+	if(buf[5] == 1) {
+		printf("Protection Mode UEP-1\r\n");
+	}
+	if(buf[5] == 2) {
+		printf("Protection Mode UEP-2\r\n");
+	}
+	if(buf[5] == 3) {
+		printf("Protection Mode UEP-3\r\n");
+	}
+	if(buf[5] == 4) {
+		printf("Protection Mode UEP-4\r\n");
+	}
+	if(buf[5] == 5) {
+		printf("Protection Mode UEP-5\r\n");
+	}
+	if(buf[5] == 6) {
+		printf("Protection Mode EEP-1A\r\n");
+	}
+	if(buf[5] == 7) {
+		printf("Protection Mode EEP-2A\r\n");
+	}
+	if(buf[5] == 8) {
+		printf("Protection Mode EEP-3A\r\n");
+	}
+	if(buf[5] == 9) {
+		printf("Protection Mode EEP-4A\r\n");
+	}
+	if(buf[5] == 10) {
+		printf("Protection Mode EEP-1B\r\n");
+	}
+	if(buf[5] == 11) {
+		printf("Protection Mode EEP-2B\r\n");
+	}
+	if(buf[5] == 12) {
+		printf("Protection Mode EEP-3B\r\n");
+	}
+	if(buf[5] == 13) {
+		printf("Protection Mode EEP-4B\r\n");
+	}
+	printf("Subchannel Bitrate: %dkbps\r\n",buf[6] + (buf[7]<<8));
+	printf("Capacity Units: %d CU\r\n",buf[8] + (buf[9]<<8));
+	printf("CU Starting Adress: %d\r\n",buf[10] + (buf[11]<<8));
+}
+
 
 
 void si46xx_dab_set_freq_list(uint8_t num, uint32_t *freq_list)
@@ -905,14 +977,14 @@ void si46xx_init_fm()
 	RESET_HIGH();
 	msleep(10);
 	si46xx_powerup(read_data);
-	store_image_from_file("firmware/rom00_patch.016.bin",0);
+	store_image_from_file("/home/pi/dabpi_ctl/firmware/rom00_patch.016.bin",0);
 
 	//store_image(rom00_patch_016_bin,rom00_patch_016_bin_len,0);
-	store_image_from_file("firmware/fmhd_radio_3_0_19.bif",0);
+	store_image_from_file("/home/pi/dabpi_ctl/firmware/fmhd_radio_3_0_19.bif",0);
 	//store_image(fmhd_radio_3_0_19_bif,fmhd_radio_3_0_19_bif_len,0);
 	si46xx_boot(read_data);
-	si46xx_get_sys_state();
-	si46xx_get_part_info();
+	si46xx_get_sys_state(read_data);
+	si46xx_get_part_info(read_data);
 	//CDC_TxString("si46xx_init() done\r\n");
 }
 
@@ -926,13 +998,13 @@ void si46xx_init_dab()
 	RESET_HIGH();
 	msleep(10);
 	si46xx_powerup(read_data);
-	store_image_from_file("firmware/rom00_patch.016.bin",0);
+	store_image_from_file("/home/pi/dabpi_ctl/firmware/rom00_patch.016.bin",0);
 	//store_image(rom00_patch_016_bin,rom00_patch_016_bin_len,0);
 	//
-	store_image_from_file("firmware/dab_radio_3_2_7.bif",0);
+	store_image_from_file("/home/pi/dabpi_ctl/firmware/dab_radio_3_2_7.bif",0);
 	//store_image(dab_radio_3_2_7_bif,dab_radio_3_2_7_bif_len,0);
 	si46xx_boot(read_data);
-	si46xx_get_sys_state();
-	si46xx_get_part_info();
+	si46xx_get_sys_state(read_data);
+	si46xx_get_part_info(read_data);
 	printf("si46xx_init() done\r\n");
 }

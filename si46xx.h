@@ -174,7 +174,6 @@ struct dab_service_list_t{
 void si46xx_init(void);
 void si46xx_init_dab(void);
 void si46xx_init_fm(void);
-void si46xx_get_sys_state(void);
 void si46xx_fm_tune_freq(uint32_t khz, uint16_t antcap);
 void si46xx_set_property(uint16_t property_id, uint16_t data);
 void si46xx_fm_rsq_status(void);
@@ -193,7 +192,7 @@ void si46xx_dab_start_digital_service_num(uint32_t num);
 void si46xx_dab_get_ensemble_info(void);
 void si46xx_dab_get_audio_info(void);
 void si46xx_dab_get_subchannel_info(void);
-
+void si46xx_dab_get_service_info(void);
 
 void si46xx_dab_scan();
 
